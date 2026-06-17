@@ -1,71 +1,49 @@
-import { Suspense } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
-import * as THREE from 'three'
-import Scene from './components/Scene'
-import MenuSection from './components/MenuSection'
-import Footer from './components/Footer'
+import { lazy, Suspense, useCallback, useRef } from 'react';
+
+import { Header } from './components/Header';
+import { HeroCopy } from './components/HeroCopy';
+import { CakeCopy } from './components/CakeCopy';
+import { Footer } from './components/Footer';
+import { CookieConsent } from './components/CookieConsent';
+import { LegalModal } from './components/LegalModal';
+import { useScrollOffset } from './store/scroll';
+
+// Heavy 3D lives in separate chunks so the hero HTML paints immediately.
+const Experience = lazy(() => import('./components/Experience'));
+const MenuGrid = lazy(() => import('./components/MenuGrid').then((m) => ({ default: m.MenuGrid })));
 
 export default function App() {
+  const expRef = useRef(null);
+  const getExp = useCallback(() => expRef.current, []);
+  useScrollOffset(getExp);
+
   return (
-    <div className="flex flex-col min-h-screen bg-[#fdf6f0]">
-      {/* Hero header */}
-      <header className="py-6 text-center border-b border-[#e8d5c0]">
-        <h1 className="text-4xl md:text-5xl font-bold tracking-widest text-[#2c1a0e]"
-            style={{ fontFamily: 'Georgia, serif', letterSpacing: '0.15em' }}>
-          КОКОС
-        </h1>
-        <p className="text-sm tracking-[0.3em] uppercase text-[#8b5e3c] mt-1">
-          Кав'ярня-кондитерська
-        </p>
-      </header>
+    <>
+      <Header />
 
-      {/* 3D Hero Scene */}
-      <div className="w-full" style={{ height: 'min(70vh, 520px)' }}>
-        <Canvas
-          shadows
-          dpr={[1, 2]}
-          gl={{
-            antialias: true,
-            toneMapping: THREE.ACESFilmicToneMapping,
-            toneMappingExposure: 1.2,
-          }}
-          camera={{ position: [0, 3, 6], fov: 42 }}
-        >
-          <Suspense fallback={null}>
-            <Scene />
-          </Suspense>
-          <OrbitControls
-            makeDefault
-            enableZoom={false}
-            enablePan={false}
-            minPolarAngle={Math.PI / 6}
-            maxPolarAngle={Math.PI / 2.2}
-            target={[0, 0.8, 0]}
-            autoRotate
-            autoRotateSpeed={0.4}
-          />
-        </Canvas>
+      {/* Fixed 3D backdrop — the living scene behind the immersive sections. */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <Suspense fallback={null}>
+          <Experience />
+        </Suspense>
       </div>
 
-      {/* CTA Button */}
-      <div className="flex justify-center py-8">
-        <a
-          href="https://t.me/coconut_coffee_bot"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-10 py-4 rounded-full text-white font-semibold text-lg shadow-lg transition-transform hover:scale-105 active:scale-95"
-          style={{ background: 'linear-gradient(135deg, #c97b3a 0%, #8b4513 100%)', fontFamily: 'Georgia, serif', letterSpacing: '0.08em' }}
-        >
-          Замовити
-        </a>
-      </div>
+      {/* Scrolling content above the canvas. */}
+      <main className="relative z-10">
+        {/* Immersive region (transparent → 3D shows through); drives scroll.offset. */}
+        <div ref={expRef}>
+          <HeroCopy />
+          <CakeCopy />
+        </div>
+        {/* Opaque sections cover the canvas. */}
+        <Suspense fallback={<div className="min-h-screen bg-cream" />}>
+          <MenuGrid />
+        </Suspense>
+        <Footer />
+      </main>
 
-      {/* Menu Section */}
-      <MenuSection />
-
-      {/* Footer */}
-      <Footer />
-    </div>
-  )
+      <CookieConsent />
+      <LegalModal />
+    </>
+  );
 }

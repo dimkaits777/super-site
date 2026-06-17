@@ -1,0 +1,7 @@
+{
+  "note": "Filenames are opaque hashes by design — do not rename to descriptive names.",
+  "generated": "2026-06-17",
+  "models": {
+    "coconutCake": "/models/cba3316d.glb"
+  }
+}
