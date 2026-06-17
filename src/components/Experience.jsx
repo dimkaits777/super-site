@@ -3,6 +3,8 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { EntranceScene } from './EntranceScene';
 import { MagicCake } from './MagicCake';
+import { scroll } from '../store/scroll';
+import { LAYOUT } from '../config/scene3d';
 
 /**
  * The lazy-loaded 3D backdrop (Three.js + drei live in this chunk so the
@@ -34,8 +36,14 @@ function Lights() {
   );
 }
 
-/** Subtle mouse parallax on the camera (module-scoped pointer target). */
+/** Scroll-driven dolly-in camera + fading mouse parallax (module-scoped state). */
 const pointer = { x: 0, y: 0 };
+const lookCurrent = new THREE.Vector3(...LAYOUT.camStart.look);
+const lookTarget = new THREE.Vector3();
+
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp01 = (x) => Math.min(1, Math.max(0, x));
+const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
 function CameraRig() {
   useEffect(() => {
@@ -48,10 +56,27 @@ function CameraRig() {
   }, []);
 
   useFrame((state) => {
+    const o = scroll.offset;
+    const e = easeInOut(clamp01(o / LAYOUT.dollyEnd));
+    const { camStart: s, camEnd: en } = LAYOUT;
+
+    // mouse parallax fades out as the camera locks onto the cake
+    const settle = clamp01(o / 0.5);
+    const mx = pointer.x * 0.5 * (1 - settle);
+    const my = pointer.y * 0.35 * (1 - settle * 0.6);
+
     const cam = state.camera;
-    cam.position.x += (pointer.x * 1.3 - cam.position.x) * 0.05;
-    cam.position.y += (1.6 - pointer.y * 0.8 - cam.position.y) * 0.05;
-    cam.lookAt(0, 1.0, 0);
+    cam.position.x += (lerp(s.pos[0], en.pos[0], e) + mx - cam.position.x) * 0.08;
+    cam.position.y += (lerp(s.pos[1], en.pos[1], e) - my - cam.position.y) * 0.08;
+    cam.position.z += (lerp(s.pos[2], en.pos[2], e) - cam.position.z) * 0.08;
+
+    lookTarget.set(
+      lerp(s.look[0], en.look[0], e),
+      lerp(s.look[1], en.look[1], e),
+      lerp(s.look[2], en.look[2], e),
+    );
+    lookCurrent.lerp(lookTarget, 0.1);
+    cam.lookAt(lookCurrent);
   });
   return null;
 }

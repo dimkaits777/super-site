@@ -27,7 +27,7 @@ export const MODELS = {
   cake: {
     url: env.VITE_CAKE_MODEL_URL || '/models/cca1fd05.glb',
     rotation: [-Math.PI / 2, 0, 0], // OBJ/Max експорт Z-up → ставимо вертикально
-    fit: 2.2,
+    fit: 2.0,
   },
 
   // СЦЕНА 3 — картки меню. Ключі збігаються з `id` у src/data/menu.js.

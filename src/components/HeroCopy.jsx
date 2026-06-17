@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { SITE } from '../config/site';
 import { LogoSVG } from './LogoSVG';
@@ -10,6 +10,21 @@ import { Send, Coffee, ChevronDown, Sparkle, MapPin } from './Icons';
  */
 export function HeroCopy() {
   const root = useRef(null);
+  const [cueHidden, setCueHidden] = useState(false);
+
+  // Scroll indicator disappears on the first wheel / scroll / touch.
+  useEffect(() => {
+    const hide = () => setCueHidden(true);
+    const opts = { passive: true, once: true };
+    window.addEventListener('wheel', hide, opts);
+    window.addEventListener('touchmove', hide, opts);
+    window.addEventListener('scroll', hide, opts);
+    return () => {
+      window.removeEventListener('wheel', hide);
+      window.removeEventListener('touchmove', hide);
+      window.removeEventListener('scroll', hide);
+    };
+  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -83,7 +98,11 @@ export function HeroCopy() {
           <MapPin className="h-4 w-4 text-gold" />
           {SITE.addressShort}
         </div>
-        <div className="hidden animate-bounce flex-col items-center sm:flex">
+        <div
+          className={`hidden flex-col items-center transition-opacity duration-500 sm:flex ${
+            cueHidden ? 'opacity-0' : 'animate-bounce opacity-100'
+          }`}
+        >
           <span className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/50">Гортайте вниз</span>
           <ChevronDown className="h-4 w-4 text-gold" />
         </div>

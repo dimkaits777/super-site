@@ -6,6 +6,7 @@ import { MODELS } from '../config/models';
 import { ModelBoundary } from './ModelBoundary';
 import { FittedModel } from './FittedModel';
 import { scroll } from '../store/scroll';
+import { LAYOUT } from '../config/scene3d';
 
 /**
  * СЦЕНА 2 — «Магія торта».
@@ -162,8 +163,8 @@ export function MagicCake() {
 
   useFrame((_, delta) => {
     const o = scroll.offset;
-    const reveal = smoothstep(0.4, 0.7, o); // 0 → 1 across the spec range
-    const appear = smoothstep(0.3, 0.45, o); // cup/steam fade-in slightly earlier
+    const reveal = smoothstep(0.38, 0.62, o); // forms as the camera dollies in
+    const appear = smoothstep(0.32, 0.5, o); // cup/steam fade-in slightly earlier
 
     if (cakeGroup.current) {
       const s = 0.0001 + reveal; // avoid zero-scale
@@ -176,15 +177,15 @@ export function MagicCake() {
     }
     if (sparklesGroup.current) {
       // dense while emerging, fades once the cake is fully present
-      const vis = Math.max(appear, 1 - Math.abs(reveal - 0.5) * 2) * (1 - smoothstep(0.7, 0.85, o));
+      const vis = Math.max(appear, 1 - Math.abs(reveal - 0.5) * 2) * (1 - smoothstep(0.62, 0.8, o));
       sparklesGroup.current.visible = vis > 0.02;
       sparklesGroup.current.scale.setScalar(0.9 + (1 - reveal) * 0.3);
     }
   });
 
   return (
-    <group position={[0, 0, 0]}>
-      <Cup position={[-1.9, 0, 0.7]} />
+    <group position={[0, 0, LAYOUT.cake.z]}>
+      <Cup position={[-1.7, 0, -0.1]} />
 
       {/* golden particles the cake emerges from */}
       <group ref={sparklesGroup} position={[0, 0.9, 0]}>
