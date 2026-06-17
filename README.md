@@ -74,4 +74,27 @@ netlify deploy --build            # чернетковий деплой
 netlify deploy --build --prod     # продакшн
 ```
 
-> Обидві платформи запускають `npm run build`, який через `prebuild` регенерує 3D-модель.
+### Cloudflare Pages
+
+Заголовки безпеки беруться з `public/_headers`, SPA-фоллбек — з `public/_redirects`
+(обидва файли копіюються у `dist/` під час збірки). Версія Node закріплена у `.nvmrc`.
+
+**Варіант A — через дашборд (рекомендовано, авто-деплой з GitHub):**
+
+1. Cloudflare Dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
+2. Оберіть репозиторій `dimkaits777/super-site` і потрібну гілку.
+3. Налаштування збірки:
+   - **Framework preset:** `Vite`
+   - **Build command:** `npm run build`
+   - **Build output directory:** `dist`
+4. **Save and Deploy**. Кожен push у гілку → новий деплой.
+
+**Варіант B — через CLI (прямий аплоад):**
+
+```bash
+npm run build
+npx wrangler pages deploy dist --project-name=kokos
+```
+
+> Усі платформи запускають `npm run build`, який через `prebuild` регенерує 3D-модель.
+
