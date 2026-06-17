@@ -3,6 +3,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { MENU } from '../data/menu';
 import { SITE } from '../config/site';
+import { MODELS } from '../config/models';
 import { MiniModel } from './MiniModel';
 import { Send, ArrowUpRight, Sparkle } from './Icons';
 
@@ -74,7 +75,7 @@ export function MenuGrid() {
                     {item.badge}
                   </span>
                 )}
-                <MiniModel kind={item.model} />
+                <MiniModel kind={item.model} model={MODELS[item.id]} />
               </div>
 
               {/* body */}

@@ -1,9 +1,12 @@
-import { useRef } from 'react';
+import { Suspense, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import { FittedModel } from './FittedModel';
+import { ModelBoundary } from './ModelBoundary';
 
 /**
- * A self-contained mini 3D canvas with a slowly rotating procedural model,
- * rendered inside each menu card. `kind` picks the geometry.
+ * A self-contained mini 3D canvas with a slowly rotating model inside each menu
+ * card. Renders a real .glb (`model`) when provided, otherwise the procedural
+ * model picked by `kind`.
  */
 
 const CREAM = '#f7f2e7';
@@ -105,15 +108,15 @@ function CupMini() {
   );
 }
 
-const MODELS = {
+const PROCEDURAL = {
   cake: CakeMini,
   napoleon: NapoleonMini,
   cheesecake: CheesecakeMini,
   cup: CupMini,
 };
 
-export function MiniModel({ kind = 'cake' }) {
-  const Model = MODELS[kind] || CakeMini;
+export function MiniModel({ kind = 'cake', model = null }) {
+  const Procedural = PROCEDURAL[kind] || CakeMini;
   return (
     <Canvas
       dpr={[1, 1.5]}
@@ -124,7 +127,15 @@ export function MiniModel({ kind = 'cake' }) {
       <ambientLight intensity={0.9} color="#fff5e6" />
       <directionalLight position={[2, 3, 2]} intensity={1.6} color="#ffe6c0" />
       <directionalLight position={[-2, 1, -1]} intensity={0.5} color={GOLD_DARK} />
-      <Model />
+      {model && model.url ? (
+        <ModelBoundary fallback={<Procedural />}>
+          <Suspense fallback={<Procedural />}>
+            <FittedModel url={model.url} rotation={model.rotation || [0, 0, 0]} fit={model.fit || 1.3} spin={0.6} />
+          </Suspense>
+        </ModelBoundary>
+      ) : (
+        <Procedural />
+      )}
     </Canvas>
   );
 }

@@ -1,8 +1,10 @@
-import { Suspense, useMemo, useRef, Component } from 'react';
+import { Suspense, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF, Sparkles, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
-import { CAKE_MODEL_URL } from '../config/models';
+import { MODELS } from '../config/models';
+import { ModelBoundary } from './ModelBoundary';
+import { FittedModel } from './FittedModel';
 import { scroll } from '../store/scroll';
 
 /**
@@ -82,40 +84,15 @@ function ProceduralCake() {
   );
 }
 
-/* --- GLB cake --- */
-function GLBCake() {
-  const { scene } = useGLTF(CAKE_MODEL_URL);
-  const cloned = useMemo(() => {
-    const s = scene.clone(true);
-    s.traverse((o) => {
-      if (o.isMesh) {
-        o.castShadow = true;
-        o.receiveShadow = true;
-      }
-    });
-    return s;
-  }, [scene]);
-  return <primitive object={cloned} />;
-}
-
-/* --- error boundary: GLB failure → procedural --- */
-class CakeBoundary extends Component {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  render() {
-    return this.state.failed ? <ProceduralCake /> : this.props.children;
-  }
-}
-
+/* --- real GLB cake (auto-fitted), procedural fallback on failure --- */
 function CakeModel() {
+  const cfg = MODELS.cake;
   return (
-    <CakeBoundary>
+    <ModelBoundary fallback={<ProceduralCake />}>
       <Suspense fallback={<ProceduralCake />}>
-        <GLBCake />
+        <FittedModel url={cfg.url} rotation={cfg.rotation} fit={cfg.fit} />
       </Suspense>
-    </CakeBoundary>
+    </ModelBoundary>
   );
 }
 
@@ -225,4 +202,4 @@ export function MagicCake() {
   );
 }
 
-useGLTF.preload(CAKE_MODEL_URL);
+useGLTF.preload(MODELS.cake.url);
